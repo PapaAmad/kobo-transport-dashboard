@@ -72,6 +72,30 @@ function parseGeoPoint(value: KoboValue): GeoPoint | undefined {
 }
 
 function getAny(record: KoboObject, keys: string[]): KoboValue {
+  const normalizedKeys = keys
+    .map((key) => key.trim())
+    .filter((key) => key.length > 0);
+
+  // 1) Exact key match first.
+  for (const key of normalizedKeys) {
+    if (key in record) {
+      return record[key];
+    }
+  }
+
+  // 2) Fallback for Kobo paths like "group/subgroup/field".
+  //    We accept suffix and leaf matches to stay compatible across exports.
+  const entries = Object.entries(record);
+  for (const [recordKey, value] of entries) {
+    const leaf = recordKey.split("/").pop() ?? recordKey;
+    for (const key of normalizedKeys) {
+      if (recordKey.endsWith(`/${key}`) || leaf === key) {
+        return value;
+      }
+    }
+  }
+
+  // 3) Legacy behavior.
   for (const key of keys) {
     if (key in record) {
       return record[key];
