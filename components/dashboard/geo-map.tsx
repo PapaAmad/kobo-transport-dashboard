@@ -24,15 +24,16 @@ interface GeoMapProps {
 export function GeoMap({ points }: GeoMapProps): JSX.Element {
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
-      <Card>
+      <Card className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-cyan-300/20 blur-3xl" />
         <CardHeader>
-          <CardTitle>Visualisation geographique</CardTitle>
+          <CardTitle className="text-foreground">Visualisation geographique</CardTitle>
           <CardDescription>
             Points GPS collectes ({points.length}). Source: champs `ent_gps` ou `localisation`.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[360px] overflow-hidden rounded-2xl border border-border/70">
+          <div className="h-[360px] overflow-hidden rounded-2xl border border-border/70 shadow-inner">
             <DynamicLeafletMap points={points} />
           </div>
         </CardContent>

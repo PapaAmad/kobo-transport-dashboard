@@ -34,17 +34,20 @@ export function ApiConfigForm({
   onSaveLocal,
   onLoadLocal
 }: ApiConfigFormProps): JSX.Element {
+  const hasError = Boolean(errorMessage);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      <Card>
+      <Card className="relative overflow-hidden">
+        <div className="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <DatabaseZap className="h-5 w-5 text-accent" />
-            Module d&apos;importation KoboToolbox
+            Centre de synchronisation KoboToolbox
           </CardTitle>
           <CardDescription>
             Renseignez l&apos;URL, le token API et l&apos;ID du formulaire. En l&apos;absence de configuration,
@@ -103,9 +106,30 @@ export function ApiConfigForm({
             </Button>
           </div>
 
-          <div className="rounded-xl border border-border/80 bg-muted/45 px-4 py-3 text-sm text-muted-foreground">
+          <div className="grid gap-3 rounded-2xl border border-border/80 bg-card/60 p-4 md:grid-cols-3">
+            <div className="rounded-xl border border-border/70 bg-muted/60 p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Source</p>
+              <p className="mt-1 text-sm font-medium text-foreground">Kobo API v2</p>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-muted/60 p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Mode</p>
+              <p className="mt-1 text-sm font-medium text-foreground">Import manuel + cache local</p>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-muted/60 p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Persistance</p>
+              <p className="mt-1 text-sm font-medium text-foreground">IndexedDB (Dexie)</p>
+            </div>
+          </div>
+
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              hasError
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-emerald-100 bg-emerald-50 text-emerald-800"
+            }`}
+          >
             <p>{statusMessage}</p>
-            {errorMessage ? <p className="mt-1 text-red-600">{errorMessage}</p> : null}
+            {errorMessage ? <p className="mt-1 text-red-700">{errorMessage}</p> : null}
           </div>
         </CardContent>
       </Card>

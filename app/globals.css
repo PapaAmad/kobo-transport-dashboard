@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: 216 35% 99%;
-  --foreground: 220 27% 14%;
+  --background: 214 45% 98%;
+  --foreground: 223 39% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 220 27% 14%;
-  --border: 220 20% 88%;
-  --input: 220 20% 86%;
-  --ring: 219 91% 55%;
-  --muted: 220 24% 96%;
-  --muted-foreground: 220 14% 42%;
-  --accent: 219 90% 54%;
+  --card-foreground: 223 39% 12%;
+  --border: 217 32% 88%;
+  --input: 217 28% 86%;
+  --ring: 221 83% 56%;
+  --muted: 220 29% 96%;
+  --muted-foreground: 220 16% 40%;
+  --accent: 221 83% 54%;
   --accent-foreground: 0 0% 100%;
 }
 
@@ -24,9 +24,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 8% 4%, rgba(29, 78, 216, 0.08) 0%, rgba(29, 78, 216, 0) 28%),
-    radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.07) 0%, rgba(37, 99, 235, 0) 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(247, 250, 255, 1) 100%);
+    radial-gradient(circle at 7% 4%, rgba(41, 84, 204, 0.11) 0%, rgba(41, 84, 204, 0) 26%),
+    radial-gradient(circle at 95% 1%, rgba(14, 116, 144, 0.1) 0%, rgba(14, 116, 144, 0) 21%),
+    linear-gradient(160deg, rgba(247, 251, 255, 1) 0%, rgba(242, 247, 255, 1) 48%, rgba(236, 245, 255, 1) 100%);
   color: hsl(var(--foreground));
   font-family: Manrope, "Space Grotesk", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -34,4 +34,60 @@ body {
 
 .recharts-tooltip-wrapper {
   outline: none;
+}
+
+::selection {
+  background: rgba(30, 64, 175, 0.2);
+}
+
+.dashboard-grid {
+  background-image:
+    linear-gradient(to right, rgba(99, 102, 241, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.panel-glass {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(9px);
+}
+
+.metric-glow {
+  box-shadow:
+    0 25px 45px -34px rgba(34, 65, 184, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.theme-exec {
+  --background: 223 41% 9%;
+  --foreground: 220 30% 92%;
+  --card: 223 34% 13%;
+  --card-foreground: 220 30% 92%;
+  --border: 223 24% 24%;
+  --input: 222 23% 22%;
+  --ring: 199 89% 56%;
+  --muted: 223 26% 18%;
+  --muted-foreground: 221 13% 69%;
+  --accent: 201 93% 57%;
+  --accent-foreground: 222 44% 12%;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 24%),
+    radial-gradient(circle at 88% 2%, rgba(59, 130, 246, 0.22) 0%, rgba(59, 130, 246, 0) 22%),
+    linear-gradient(160deg, rgba(11, 18, 35, 1) 0%, rgba(15, 23, 42, 1) 48%, rgba(9, 13, 27, 1) 100%);
+}
+
+.theme-exec .dashboard-grid {
+  background-image:
+    linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+}
+
+.theme-exec .panel-glass {
+  background-color: rgba(17, 25, 45, 0.8);
+}
+
+.theme-exec .metric-glow {
+  box-shadow:
+    0 35px 80px -55px rgba(56, 189, 248, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }

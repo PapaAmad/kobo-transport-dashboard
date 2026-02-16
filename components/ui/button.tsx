@@ -13,8 +13,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const variantClasses: Record<ButtonVariant, string> = {
   default:
-    "bg-accent text-accent-foreground hover:bg-accent/90 border border-transparent shadow-soft",
-  secondary: "bg-card text-foreground hover:bg-muted border border-border",
+    "bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 text-accent-foreground hover:brightness-110 border border-transparent shadow-soft",
+  secondary:
+    "bg-card/80 text-foreground hover:bg-muted border border-border/80 shadow-[0_10px_25px_-20px_rgba(30,64,175,0.6)]",
   ghost: "bg-transparent text-foreground hover:bg-muted/70 border border-transparent"
 };
 
@@ -30,7 +31,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition duration-200 disabled:pointer-events-none disabled:opacity-50",
           variantClasses[variant],
           sizeClasses[size],
           className

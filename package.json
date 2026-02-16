@@ -2,8 +2,14 @@
   "name": "ise2-dashboard",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20 <24"
+  },
   "scripts": {
     "dev": "next dev",
+    "dev:clean": "rm -rf .next && next dev",
+    "reset:dev": "rm -rf .next .turbo node_modules/.cache && next dev",
+    "clean": "rm -rf .next .turbo node_modules/.cache",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
