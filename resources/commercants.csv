@@ -1,0 +1,21 @@
+name,label,localisation,type_acteur,id
+c001,ETS Ndiaye Commerce,14.7167 -17.4677 0 15,Importateur,1
+c002,Societe Ba Trading,14.7160 -17.2730 0 20,Importateur,2
+c003,Groupement Fall Distribution,14.7645 -17.3908 0 20,Importateur,3
+c004,Comptoir Diallo Services,14.7761 -17.3956 0 20,Importateur,4
+c005,Etablissement Sarr Market,14.7886 -16.9245 0 25,Importateur,5
+c006,Maison Sy Appro,14.4190 -16.9590 0 25,Importateur,6
+c007,Union Faye Commerce,14.1519 -16.0726 0 25,Importateur,7
+c008,ETS Kane Agro,14.3390 -16.4111 0 30,Importateur,8
+c009,Comptoir Gueye Logistique,16.0326 -16.4818 0 20,Importateur,9
+c010,Societe Mbaye Fournitures,15.6187 -16.2244 0 30,Importateur,10
+c011,Entreprise Sow Transit,15.6559 -13.2554 0 30,Importateur,11
+c012,ETS Diop Import,13.7707 -13.6673 0 30,Importateur,12
+c013,Maison Cisse Export,12.5605 -12.1743 0 35,Exportateur,13
+c014,Comptoir Ndao Export,12.8939 -14.9413 0 35,Exportateur,14
+c015,Societe Toure International,12.5833 -16.2667 0 25,Exportateur,15
+c016,ETS Camara Fret,12.7042 -15.5569 0 35,Exportateur,16
+c017,Entreprise Locex Trading,14.1059 -15.5500 0 30,Exportateur,17
+c018,Union Seck Global,14.6559 -16.2316 0 30,Exportateur,18
+c019,Comptoir Mbacke Services,14.8679 -15.8957 0 30,Exportateur,19
+c020,Societe Ndour Commodities,16.4625 -15.7008 0 35,Exportateur,20
