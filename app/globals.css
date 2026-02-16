@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 216 35% 99%;
+  --foreground: 220 27% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 27% 14%;
+  --border: 220 20% 88%;
+  --input: 220 20% 86%;
+  --ring: 219 91% 55%;
+  --muted: 220 24% 96%;
+  --muted-foreground: 220 14% 42%;
+  --accent: 219 90% 54%;
+  --accent-foreground: 0 0% 100%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 4%, rgba(29, 78, 216, 0.08) 0%, rgba(29, 78, 216, 0) 28%),
+    radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.07) 0%, rgba(37, 99, 235, 0) 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(247, 250, 255, 1) 100%);
+  color: hsl(var(--foreground));
+  font-family: Manrope, "Space Grotesk", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
+}
