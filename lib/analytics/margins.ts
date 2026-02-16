@@ -1,6 +1,7 @@
 import {
   CompletionStats,
   DashboardAnalytics,
+  GeoAuditStats,
   GroupedSeriesItem,
   MarginKpis
 } from "@/types/analytics";
@@ -52,8 +53,43 @@ function groupAverages<T extends { marginAmount: number }>(
     .sort((a, b) => b.average - a.average);
 }
 
+function computeGeoAuditStats(dataset: DashboardDataset, thresholdMeters = 50): GeoAuditStats {
+  const audits = dataset.geoAudits ?? [];
+  const total = audits.length;
+  let checked = 0;
+  let successCount = 0;
+  let criticalCount = 0;
+  let missingCount = 0;
+
+  audits.forEach((entry) => {
+    if (entry.status === "missing") {
+      missingCount += 1;
+      return;
+    }
+    checked += 1;
+    if (entry.status === "success") {
+      successCount += 1;
+      return;
+    }
+    criticalCount += 1;
+  });
+
+  const criticalRate = checked === 0 ? 0 : (criticalCount / checked) * 100;
+  return {
+    thresholdMeters,
+    total,
+    checked,
+    successCount,
+    criticalCount,
+    missingCount,
+    criticalRate
+  };
+}
+
 export function buildDashboardAnalytics(dataset: DashboardDataset): DashboardAnalytics {
   const values = dataset.rows.map((row) => row.marginAmount);
+  const geoAudits = dataset.geoAudits ?? [];
+  const geoAudit = computeGeoAuditStats(dataset, 50);
 
   return {
     completion: computeCompletion(dataset.totalSubmissions, 5),
@@ -62,6 +98,11 @@ export function buildDashboardAnalytics(dataset: DashboardDataset): DashboardAna
     byUnit: groupAverages(dataset.rows, (row) => row.unitLabel),
     geoPoints: dataset.rows
       .map((row) => row.gps)
-      .filter((point): point is NonNullable<typeof point> => Boolean(point))
+      .filter((point): point is NonNullable<typeof point> => Boolean(point)),
+    geoAudit,
+    auditLogs: geoAudits,
+    comparisonPoints: geoAudits.filter(
+      (entry) => Boolean(entry.expectedGps) && Boolean(entry.actualGps)
+    )
   };
 }

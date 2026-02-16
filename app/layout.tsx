@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 export const metadata: Metadata = {
   title: "ISE2 - Dashboard Marges de Transport",

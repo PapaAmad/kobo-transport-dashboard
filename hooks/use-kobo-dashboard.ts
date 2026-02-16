@@ -15,8 +15,18 @@ import { DashboardAnalytics } from "@/types/analytics";
 const EMPTY_DATASET: DashboardDataset = {
   rows: [],
   totalSubmissions: 0,
-  withTransportCount: 0
+  withTransportCount: 0,
+  geoAudits: []
 };
+
+function ensureDatasetShape(value: DashboardDataset): DashboardDataset {
+  return {
+    rows: value.rows ?? [],
+    totalSubmissions: value.totalSubmissions ?? 0,
+    withTransportCount: value.withTransportCount ?? 0,
+    geoAudits: value.geoAudits ?? []
+  };
+}
 
 interface KoboConfigState {
   baseUrl: string;
@@ -62,7 +72,7 @@ export function useKoboDashboard(): UseKoboDashboardResult {
     const [storedSnapshot, storedConfig] = await Promise.all([loadSnapshot(), loadConfig()]);
 
     if (storedSnapshot?.payload) {
-      setDataset(storedSnapshot.payload);
+      setDataset(ensureDatasetShape(storedSnapshot.payload));
       setStatusMessage(`Données locales chargées (${new Date(storedSnapshot.updatedAt).toLocaleString()}).`);
     }
 
@@ -90,7 +100,7 @@ export function useKoboDashboard(): UseKoboDashboardResult {
 
     try {
       const result = await fetchKoboSubmissions(config);
-      setDataset(result.dataset);
+      setDataset(ensureDatasetShape(result.dataset));
       setStatusMessage(
         `Import réussi: ${result.totalRaw} soumissions brutes, ${result.dataset.rows.length} lignes analytiques.`
       );
@@ -123,7 +133,7 @@ export function useKoboDashboard(): UseKoboDashboardResult {
         setStatusMessage("Aucune donnée locale disponible.");
         return;
       }
-      setDataset(storedSnapshot.payload);
+      setDataset(ensureDatasetShape(storedSnapshot.payload));
       setStatusMessage(`Snapshot local restauré (${new Date(storedSnapshot.updatedAt).toLocaleString()}).`);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Chargement local impossible.");

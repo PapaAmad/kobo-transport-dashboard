@@ -4,24 +4,31 @@ import { useState } from "react";
 import { motion, Variants } from "framer-motion";
 import {
   Activity,
+  AlertTriangle,
   Database,
   MapPinned,
   Moon,
+  ShieldCheck,
+  ShieldX,
   Sparkles,
   Sun
 } from "lucide-react";
+import { GeoAuditJournal } from "@/components/dashboard/geo-audit-journal";
+import { GeoComparisonMap } from "@/components/dashboard/geo-comparison-map";
 import { MarginKpisCards } from "@/components/dashboard/margin-kpis";
 import { GeoMap } from "@/components/dashboard/geo-map";
 import { SupplierCostChart } from "@/components/dashboard/supplier-cost-chart";
 import { SurveyProgressCards } from "@/components/dashboard/survey-progress-cards";
 import { UnitCostChart } from "@/components/dashboard/unit-cost-chart";
+import { VerificationBadge } from "@/components/dashboard/verification-badge";
 import { ApiConfigForm } from "@/components/import/api-config-form";
 import { AppShell } from "@/components/layout/app-shell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useKoboDashboard } from "@/hooks/use-kobo-dashboard";
 import { cn } from "@/lib/utils/cn";
-import { formatCurrency, formatPercent } from "@/lib/utils/format";
+import { formatCurrency, formatNumber, formatPercent } from "@/lib/utils/format";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -65,6 +72,7 @@ export default function HomePage(): JSX.Element {
   const isExecutive = themeMode === "executive";
 
   const hasData = dataset.rows.length > 0;
+  const hasAuditData = analytics.auditLogs.length > 0;
   const transportRate =
     dataset.totalSubmissions === 0
       ? 0
@@ -159,6 +167,20 @@ export default function HomePage(): JSX.Element {
                 <p className={cn("text-xs uppercase tracking-wide", isExecutive ? "text-white/85" : "text-slate-500")}>Transport facture</p>
                 <p className="mt-2 text-2xl font-semibold">{formatPercent(transportRate)}</p>
               </div>
+              <div className={cn("rounded-2xl border p-4 sm:col-span-2", isExecutive ? "border-white/15 bg-white/12" : "border-slate-200 bg-white/80")}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className={cn("text-xs uppercase tracking-wide", isExecutive ? "text-white/85" : "text-slate-500")}>
+                    Controle geographique (50m)
+                  </p>
+                  <VerificationBadge
+                    status={analytics.geoAudit.criticalCount > 0 ? "critical" : "success"}
+                    label={analytics.geoAudit.criticalCount > 0 ? "Alerte active" : "Conforme"}
+                  />
+                </div>
+                <p className="mt-2 text-2xl font-semibold">
+                  {formatNumber(analytics.geoAudit.checked)} verifiees
+                </p>
+              </div>
             </CardContent>
           </Card>
         </motion.section>
@@ -202,6 +224,57 @@ export default function HomePage(): JSX.Element {
           <MarginKpisCards kpis={analytics.kpis} />
         </motion.section>
 
+        <motion.section variants={sectionVariants} className="space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">
+              Controle d&apos;integrite GPS
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Verification stricte de coherence entre position theorique et position reelle (seuil 50 m).
+            </p>
+          </div>
+          <section className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                  Verifications valides
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-3xl font-semibold text-foreground">{analytics.geoAudit.successCount}</p>
+                <VerificationBadge status="success" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                  Ecarts critiques
+                  <ShieldX className="h-4 w-4 text-rose-600" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-3xl font-semibold text-foreground">{analytics.geoAudit.criticalCount}</p>
+                <Badge className="w-fit bg-rose-500/15 text-rose-700">
+                  {formatPercent(analytics.geoAudit.criticalRate)} des controles
+                </Badge>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between text-sm font-medium text-muted-foreground">
+                  Dossiers incomplets
+                  <AlertTriangle className="h-4 w-4 text-slate-600" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-3xl font-semibold text-foreground">{analytics.geoAudit.missingCount}</p>
+                <VerificationBadge status="missing" />
+              </CardContent>
+            </Card>
+          </section>
+        </motion.section>
+
         <motion.section variants={sectionVariants}>
           {hasData ? (
             <section className="grid gap-5 xl:grid-cols-2">
@@ -225,6 +298,27 @@ export default function HomePage(): JSX.Element {
                   le premier lot de soumissions sera traite.
                 </p>
               </CardContent>
+            </Card>
+          )}
+        </motion.section>
+
+        <motion.section variants={sectionVariants}>
+          {hasAuditData ? (
+            <section className="space-y-5">
+              <GeoComparisonMap entries={analytics.comparisonPoints} />
+              <GeoAuditJournal logs={analytics.auditLogs} thresholdMeters={analytics.geoAudit.thresholdMeters} />
+            </section>
+          ) : (
+            <Card className="border-dashed">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MapPinned className="h-4 w-4 text-accent" />
+                  Audit GPS en attente
+                </CardTitle>
+                <CardDescription>
+                  Aucun enregistrement avec `gps_theorique` ou `position_reelle` n&apos;a encore ete importe.
+                </CardDescription>
+              </CardHeader>
             </Card>
           )}
         </motion.section>

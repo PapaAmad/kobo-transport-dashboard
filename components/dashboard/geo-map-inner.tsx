@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import { GeoPoint } from "@/types/survey";
-import "leaflet/dist/leaflet.css";
 
 interface GeoMapInnerProps {
   points: GeoPoint[];

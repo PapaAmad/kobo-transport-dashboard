@@ -146,3 +146,25 @@ Validation:
 
 Validation:
 - `pnpm lint` passed.
+
+## 2026-02-16 - Step 14: GPS navigation + integrity control (50m)
+- XLSForm `survey` GPS navigation block aligned with external CSV selection:
+  - `id_commercant` (select_one_from_file),
+  - `gps_theorique` (calculate via `instance('commercants').../localisation`),
+  - `url_maps` (Google Maps URL calculate),
+  - `note_navigation` (markdown route link),
+  - `position_reelle` (field geopoint capture).
+- Added Haversine distance utility (`calculateDistance`) and strict threshold (`50m`).
+- Extended normalized dataset with `geoAudits` per submission (`success`, `critical`, `missing`).
+- Added dashboard modules:
+  - `VerificationBadge` (status icon/color),
+  - GPS integrity KPI cards,
+  - comparative Leaflet map (expected vs actual),
+  - `Journal d'audit` table with distance and alert message.
+- Updated dashboard analytics contracts and backward compatibility for old local snapshots.
+
+Issues:
+- External Python package install for XLSX editing (`openpyxl`) unavailable in restricted network context.
+
+Resolution:
+- Applied XLSX edits through direct XML update inside `.xlsx` archive while preserving workbook structure.

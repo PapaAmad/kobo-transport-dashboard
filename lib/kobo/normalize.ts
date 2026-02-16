@@ -1,6 +1,15 @@
 import { KoboObject, KoboValue } from "@/types/kobo";
-import { DashboardDataset, GeoPoint, NormalizedCostRow } from "@/types/survey";
+import { calculateDistance } from "@/lib/analytics/distance";
+import {
+  DashboardDataset,
+  GeoAuditEntry,
+  GeoPoint,
+  NormalizedCostRow,
+  VerificationStatus
+} from "@/types/survey";
 import { getSupplierLabel, getUnitLabel } from "@/lib/kobo/lookups";
+
+const GPS_TOLERANCE_METERS = 50;
 
 function asRecord(value: KoboValue): KoboObject | null {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -44,7 +53,11 @@ function parseGeoPoint(value: KoboValue): GeoPoint | undefined {
     return undefined;
   }
 
-  const parts = raw.split(/\s+/);
+  const parts = raw
+    .replace(/,/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   if (parts.length < 2) {
     return undefined;
   }
@@ -102,13 +115,68 @@ function submissionHasTransport(submission: KoboObject): boolean {
   return value === "1";
 }
 
+function buildGeoAuditEntry(submission: KoboObject, submissionId: string): GeoAuditEntry {
+  const commercantId = asString(getAny(submission, ["id_commercant", "src_unite_liste", "import"]));
+  const commerantLabelRaw = asString(
+    getAny(submission, ["id_commercant_label", "src_unite_label", "import_label"])
+  );
+  const commercantLabel = commerantLabelRaw || commercantId || "Non renseigne";
+  const expectedGps = parseGeoPoint(
+    getAny(submission, ["gps_theorique", "src_localisation", "localisation"])
+  );
+  const actualGps = parseGeoPoint(getAny(submission, ["position_reelle", "ent_gps"]));
+  const mapUrl = asString(getAny(submission, ["url_maps"]));
+
+  if (expectedGps && actualGps) {
+    const distanceMeters = calculateDistance(expectedGps, actualGps);
+    const status: VerificationStatus =
+      distanceMeters <= GPS_TOLERANCE_METERS ? "success" : "critical";
+    const message =
+      status === "success"
+        ? "Position conforme"
+        : "Alerte : Ecart de localisation detecte";
+
+    return {
+      submissionId,
+      commercantId,
+      commercantLabel,
+      expectedGps,
+      actualGps,
+      distanceMeters,
+      status,
+      message,
+      mapUrl
+    };
+  }
+
+  let message = "Coordonnees GPS manquantes (attendue et reelle).";
+  if (expectedGps && !actualGps) {
+    message = "Position reelle absente: verification impossible.";
+  } else if (!expectedGps && actualGps) {
+    message = "Position theorique absente: verification impossible.";
+  }
+
+  return {
+    submissionId,
+    commercantId,
+    commercantLabel,
+    expectedGps,
+    actualGps,
+    status: "missing",
+    message,
+    mapUrl
+  };
+}
+
 export function normalizeKoboSubmissions(records: KoboObject[]): DashboardDataset {
   const rows: NormalizedCostRow[] = [];
+  const geoAudits: GeoAuditEntry[] = [];
   let withTransportCount = 0;
 
   records.forEach((submission, index) => {
     const submissionId = getSubmissionId(submission, index + 1);
-    const gps = parseGeoPoint(getAny(submission, ["ent_gps", "localisation"]));
+    const gps = parseGeoPoint(getAny(submission, ["position_reelle", "ent_gps", "localisation"]));
+    geoAudits.push(buildGeoAuditEntry(submission, submissionId));
 
     if (submissionHasTransport(submission)) {
       withTransportCount += 1;
@@ -146,6 +214,7 @@ export function normalizeKoboSubmissions(records: KoboObject[]): DashboardDatase
   return {
     rows,
     totalSubmissions: records.length,
-    withTransportCount
+    withTransportCount,
+    geoAudits
   };
 }
