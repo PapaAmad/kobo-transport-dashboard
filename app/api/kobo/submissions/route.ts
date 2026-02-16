@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { KoboApiPage, KoboObject } from "@/types/kobo";
-import { normalizeKoboSubmissions } from "@/lib/kobo/normalize";
+import { normalizeKoboSubmissionsWithOptions } from "@/lib/kobo/normalize";
 
 interface ImportRequestBody {
   baseUrl?: string;
@@ -17,6 +19,97 @@ function ensureAbsoluteUrl(url: string, fallbackBaseUrl: string): string {
     return url;
   }
   return `${fallbackBaseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
+function normalizeHeader(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function parseCsvLine(line: string): string[] {
+  const output: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === "\"") {
+      const next = line[i + 1];
+      if (inQuotes && next === "\"") {
+        current += "\"";
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (char === "," && !inQuotes) {
+      output.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+
+  output.push(current.trim());
+  return output;
+}
+
+async function loadCommercantsGeoById(): Promise<Record<string, string>> {
+  const candidatePaths = [
+    path.join(process.cwd(), "commercants.csv"),
+    path.join(process.cwd(), "..", "commercants.csv")
+  ];
+
+  let csvContent = "";
+  for (const filePath of candidatePaths) {
+    try {
+      csvContent = await readFile(filePath, "utf-8");
+      if (csvContent.trim()) {
+        break;
+      }
+    } catch {
+      // Try next candidate path.
+    }
+  }
+
+  if (!csvContent.trim()) {
+    return {};
+  }
+
+  const lines = csvContent
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length < 2) {
+    return {};
+  }
+
+  const headers = parseCsvLine(lines[0]).map(normalizeHeader);
+  const nameIndex = headers.findIndex((header) => header === "name");
+  const locIndex = headers.findIndex((header) => header === "localisation");
+  if (nameIndex < 0 || locIndex < 0) {
+    return {};
+  }
+
+  const geoById: Record<string, string> = {};
+  for (let i = 1; i < lines.length; i += 1) {
+    const cols = parseCsvLine(lines[i]);
+    const rawId = cols[nameIndex]?.trim().toLowerCase() ?? "";
+    const rawLoc = cols[locIndex]?.trim() ?? "";
+    if (!rawId || !rawLoc) {
+      continue;
+    }
+    geoById[rawId] = rawLoc;
+  }
+
+  return geoById;
 }
 
 async function fetchAllSubmissions(
@@ -71,8 +164,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const raw = await fetchAllSubmissions(baseUrl, token, assetUid);
-    const dataset = normalizeKoboSubmissions(raw);
+    const [raw, commercantsGeoById] = await Promise.all([
+      fetchAllSubmissions(baseUrl, token, assetUid),
+      loadCommercantsGeoById()
+    ]);
+    const dataset = normalizeKoboSubmissionsWithOptions(raw, { commercantsGeoById });
 
     return NextResponse.json({ dataset, totalRaw: raw.length }, { status: 200 });
   } catch (error) {

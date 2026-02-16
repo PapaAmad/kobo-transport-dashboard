@@ -11,6 +11,10 @@ import { getSupplierLabel, getUnitLabel } from "@/lib/kobo/lookups";
 
 const GPS_TOLERANCE_METERS = 50;
 
+export interface NormalizeOptions {
+  commercantsGeoById?: Record<string, string>;
+}
+
 function asRecord(value: KoboValue): KoboObject | null {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return value as KoboObject;
@@ -139,17 +143,32 @@ function submissionHasTransport(submission: KoboObject): boolean {
   return value === "1";
 }
 
-function buildGeoAuditEntry(submission: KoboObject, submissionId: string): GeoAuditEntry {
+function normalizeLookupKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function buildGeoAuditEntry(
+  submission: KoboObject,
+  submissionId: string,
+  options: NormalizeOptions
+): GeoAuditEntry {
+  const geoById = options.commercantsGeoById ?? {};
   const commercantId = asString(getAny(submission, ["id_commercant", "src_unite_liste", "import"]));
   const commerantLabelRaw = asString(
     getAny(submission, ["id_commercant_label", "src_unite_label", "import_label"])
   );
   const commercantLabel = commerantLabelRaw || commercantId || "Non renseigne";
-  const expectedGps = parseGeoPoint(
+  const expectedRaw = asString(
     getAny(submission, ["gps_theorique", "src_localisation", "localisation"])
   );
+  const csvRaw = geoById[normalizeLookupKey(commercantId)] ?? "";
+  const expectedGps = parseGeoPoint(expectedRaw || csvRaw);
   const actualGps = parseGeoPoint(getAny(submission, ["position_reelle", "ent_gps"]));
-  const mapUrl = asString(getAny(submission, ["url_maps"]));
+  const mapUrl =
+    asString(getAny(submission, ["url_maps"])) ||
+    (expectedGps
+      ? `https://www.google.com/maps/search/?api=1&query=${expectedGps.lat},${expectedGps.lng}`
+      : "");
 
   if (expectedGps && actualGps) {
     const distanceMeters = calculateDistance(expectedGps, actualGps);
@@ -193,6 +212,13 @@ function buildGeoAuditEntry(submission: KoboObject, submissionId: string): GeoAu
 }
 
 export function normalizeKoboSubmissions(records: KoboObject[]): DashboardDataset {
+  return normalizeKoboSubmissionsWithOptions(records, {});
+}
+
+export function normalizeKoboSubmissionsWithOptions(
+  records: KoboObject[],
+  options: NormalizeOptions
+): DashboardDataset {
   const rows: NormalizedCostRow[] = [];
   const geoAudits: GeoAuditEntry[] = [];
   let withTransportCount = 0;
@@ -200,7 +226,7 @@ export function normalizeKoboSubmissions(records: KoboObject[]): DashboardDatase
   records.forEach((submission, index) => {
     const submissionId = getSubmissionId(submission, index + 1);
     const gps = parseGeoPoint(getAny(submission, ["position_reelle", "ent_gps", "localisation"]));
-    geoAudits.push(buildGeoAuditEntry(submission, submissionId));
+    geoAudits.push(buildGeoAuditEntry(submission, submissionId, options));
 
     if (submissionHasTransport(submission)) {
       withTransportCount += 1;
